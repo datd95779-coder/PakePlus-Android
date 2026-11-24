@@ -58,7 +58,7 @@ android {
 
 dependencies {
     // Secure browser surface for Facebook and third-party sign-in.
-    implementation("androidx.browser:browser:1.10.0")
+    implementation("androidx.browser:browser:1.7.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
