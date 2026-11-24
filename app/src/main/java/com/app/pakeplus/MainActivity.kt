@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.Gravity
 import android.webkit.PermissionRequest
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
@@ -244,8 +245,10 @@ class MainActivity : AppCompatActivity() {
             allowUniversalAccessFromFileURLs = true
             loadWithOverviewMode = true
             mediaPlaybackRequiresUserGesture = false
-            // setSupportMultipleWindows(true)
+            // Keep OAuth / cross-site sign-in flows from losing third-party cookies.
         }
+        CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
         webView
         // set user agent
         if (userAgent.isNotEmpty()) {
