@@ -48,6 +48,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 // import androidx.navigation.ui.setupWithNavController
 // import androidx.drawerlayout.widget.DrawerLayout
 // import com.app.pakeplus.databinding.ActivityMainBinding
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -183,6 +184,23 @@ class MainActivity : AppCompatActivity() {
         if (keepScreenOnFromConfig) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+        // Use the trusted system browser for Facebook and all sign-in flows.
+        // Unlike WebView, Custom Tabs share the browser cookie jar and isolate credentials.
+        val browserMode = config?.get("browserMode") as? Boolean ?: false
+        if (browserMode) {
+            setContentView(android.widget.TextView(this).apply {
+                text = "Facebook đang mở trong trình duyệt an toàn.\\n\\nQuay lại ứng dụng bằng nút Back sau khi đóng tab."
+                gravity = Gravity.CENTER
+                textSize = 16f
+                setPadding(32, 32, 32, 32)
+            })
+            CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .build()
+                .launchUrl(this, Uri.parse(webUrl))
+            return
+        }
+
         // enable debug by chrome://inspect
         WebView.setWebContentsDebuggingEnabled(debug)
         // config fullscreen
@@ -300,7 +318,7 @@ class MainActivity : AppCompatActivity() {
                         if (abs(diffX) > 100 && abs(velocityX) > 100) {
                             if (diffX > 0) {
                                 // Swipe right - go back
-                                if (webView.canGoBack()) {
+                                if (::webView.isInitialized && webView.canGoBack()) {
                                     webView.goBack()
                                     return true
                                 }
@@ -357,7 +375,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        webView.onPause()
+        if (::webView.isInitialized) webView.onPause()
         // 如果正在全屏播放视频，暂停播放
         if (customView != null) {
             webView.pauseTimers()
@@ -366,9 +384,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        webView.onResume()
+        if (::webView.isInitialized) webView.onResume()
         // 恢复 WebView 的定时器
-        webView.resumeTimers()
+        if (::webView.isInitialized) webView.resumeTimers()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -384,7 +402,7 @@ class MainActivity : AppCompatActivity() {
         if (customView != null) {
             hideCustomView()
         }
-        webView.destroy()
+        if (::webView.isInitialized) webView.destroy()
         super.onDestroy()
     }
 
