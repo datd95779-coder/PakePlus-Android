@@ -829,37 +829,6 @@ class MainActivity : AppCompatActivity() {
 
     inner class MyWebViewClient(val debug: Boolean) : WebViewClient() {
 
-        /**
-         * Google chặn một số luồng đăng nhập OAuth bên trong WebView nhúng.
-         * Chuyển riêng các trang xác thực tài khoản Google sang trình duyệt ngoài.
-         */
-        private fun isGoogleAuthUrl(rawUrl: String): Boolean {
-            val host = Uri.parse(rawUrl).host?.lowercase() ?: return false
-            return host == "accounts.google.com" ||
-                host.endsWith(".accounts.google.com") ||
-                host == "consent.google.com" ||
-                host == "myaccount.google.com"
-        }
-
-        private fun openGoogleAuthInBrowser(url: String): Boolean {
-            return try {
-                val chromeIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
-                    setPackage("com.android.chrome")
-                }
-                try {
-                    startActivity(chromeIntent)
-                } catch (_: ActivityNotFoundException) {
-                    // Nếu Chrome chưa cài, dùng trình duyệt mặc định của máy.
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                }
-                true
-            } catch (e: Exception) {
-                Log.e("WebViewClient", "Cannot open Google authentication in browser: $url", e)
-                showTopToast(this@MainActivity, "Không mở được trình duyệt để xác thực Google", Toast.LENGTH_LONG)
-                true
-            }
-        }
-
         private fun handleOverrideUrl(view: WebView?, rawUrl: String?): Boolean {
             if (rawUrl.isNullOrBlank()) return false
             val fixedUrl = rawUrl.toString()
@@ -883,13 +852,6 @@ class MainActivity : AppCompatActivity() {
                     Log.e("WebViewClient", "Error handling tel url: $fixedUrl", e)
                     true
                 }
-            }
-
-            // Google authentication must run in an external browser, not this embedded WebView.
-            if ((fixedUrl.startsWith("http://") || fixedUrl.startsWith("https://")) &&
-                isGoogleAuthUrl(fixedUrl)
-            ) {
-                return openGoogleAuthInBrowser(fixedUrl)
             }
 
             // 对常见文件类型的 HTTP/HTTPS 链接，直接拦截为下载，不在 WebView 内打开
