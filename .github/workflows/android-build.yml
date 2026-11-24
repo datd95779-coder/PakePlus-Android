@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - experiment/custom-tabs-login
 
 permissions:
   contents: write
